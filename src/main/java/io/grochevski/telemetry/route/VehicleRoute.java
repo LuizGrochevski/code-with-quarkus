@@ -1,4 +1,4 @@
-package org.acme.route;
+package io.grochevski.telemetry.route;
 
 import org.acme.entity.VehicleData;
 import org.apache.camel.builder.RouteBuilder;

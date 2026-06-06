@@ -1,4 +1,4 @@
-package org.acme.resource;
+package io.grochevski.telemetry.resource;
 
 import java.time.LocalDateTime;
 import java.util.List;
