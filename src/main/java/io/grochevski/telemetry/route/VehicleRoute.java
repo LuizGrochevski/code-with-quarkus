@@ -1,6 +1,6 @@
 package io.grochevski.telemetry.route;
 
-import org.acme.entity.VehicleData;
+import io.grochevski.telemetry.entity.VehicleData;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.hibernate.reactive.mutiny.Mutiny;
@@ -29,7 +29,7 @@ public class VehicleRoute extends RouteBuilder {
             .process(exchange -> {
                 VehicleData data = exchange.getIn().getBody(VehicleData.class);
                 
-                if (data.speed > 110) {
+                if (data.isSpeeding()) {
                     log.warn("🚨 [KAFKA] ALERTA DE VELOCIDADE: Veículo " + data.vehicleId + " a " + data.speed + " km/h!");
                 } else {
                     log.info("📥 [KAFKA] Telemetria processada para o veículo " + data.vehicleId);
