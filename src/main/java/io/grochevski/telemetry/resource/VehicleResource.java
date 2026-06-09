@@ -1,6 +1,6 @@
 package io.grochevski.telemetry.resource;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import io.grochevski.telemetry.entity.VehicleData;
