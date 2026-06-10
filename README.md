@@ -2,6 +2,30 @@
 
 Uma API reativa de altíssima performance desenvolvida para monitoramento e processamento de telemetria de veículos (coordenadas e velocidade) em tempo real. O projeto demonstra como unir mensageria assíncrona, engines de integração e persistência não-bloqueante em um ecossistema totalmente compilado de forma nativa (AOT) e monitorado.
 
+## Objetivo
+
+A Vehicle Telemetry API simula um sistema de monitoramento de frota em tempo real.
+
+O sistema recebe dados de telemetria de veículos, processa eventos de velocidade, persiste informações de localização e disponibiliza consultas históricas através de uma API REST reativa.
+
+## Funcionalidades
+
+- Recebimento de telemetria em tempo real
+- Processamento assíncrono com Kafka
+- Persistência reativa em PostgreSQL
+- Detecção de excesso de velocidade
+- Consulta histórica por veículo
+- Métricas Prometheus
+- Health Checks para ambientes Kubernetes
+
+## Benefícios Técnicos
+
+- Baixa latência
+- Alto throughput
+- Escalabilidade horizontal
+- Observabilidade
+- Compilação nativa com GraalVM
+
 ## 🛠️ Tecnologias e Ecossistema
 
 - **Java 21** & **Quarkus 3.36** (Modo Reativo)
@@ -19,11 +43,44 @@ Uma API reativa de altíssima performance desenvolvida para monitoramento e proc
 
 A aplicação resolve a ponte entre pools de threads tradicionais de consumo (Apache Camel) e o ecossistema de Event Loop síncrono/reativo do banco de dados (Vert.x) sem causar bloqueios ou vazamento de contexto.
 
-1. **Ingestão HTTP / Kafka:** A API expõe endpoints REST reativos e simultaneamente consome dados brutos do tópico `vehicle-telemetry` no Kafka.
-2. **Processamento e Validação:** O Apache Camel realiza o *unmarshal* com Jackson para a entidade `VehicleData` e executa as regras de negócio (como checagem de excesso de velocidade acima de 110 km/h).
+1. **Recepção de Telemetria:** O sistema suporta ingestão de dados tanto via API HTTP quanto através de eventos publicados no Kafka.
+2. **Processamento de Eventos Kafka:** O Apache Camel realiza o unmarshal das mensagens recebidas, executa validações e aplica regras de negócio como a detecção de excesso de velocidade.
 3. **Persistência Isolada:** Utiliza o padrão de abertura de sessão assíncrona (`Mutiny.SessionFactory`), garantindo escrita não-bloqueante de alto rendimento no PostgreSQL.
-4. **Resiliência (Dead Letter Channel):** Políticas de retentativa automática (`onException`) configuradas para falhas de infraestrutura.
+4. **Resiliência:** políticas de retentativa automática configuradas através do Apache Camel para falhas transitórias.
 5. **Observabilidade (Prometheus/Grafana):** O motor do Micrometer expõe métricas nativas do ecossistema e do JVM/SO no endpoint `/q/metrics` que alimenta os dashboards.
+
+### Fluxo Simplificado
+
+```text
+┌─────────────┐
+│ Cliente API │
+└──────┬──────┘
+       │ HTTP POST
+       ▼
+┌─────────────┐
+│   Quarkus   │
+│ Vehicle API │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ PostgreSQL  │
+└─────────────┘
+
+
+┌─────────────┐
+│    Kafka    │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Apache Camel│
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ PostgreSQL  │
+└─────────────┘
 
 ---
 
@@ -46,7 +103,7 @@ docker compose up --force-recreate
 ```
 
 ### Validação de Inicialização Nativa
-Graças à compilação Ahead-of-Time (AOT), a aplicação ignora o tempo de inicialização tradicional da JVM tradicional, realizando o boot completo em milissegundos:
+Graças à compilação Ahead-of-Time (AOT), a aplicação reduz drasticamente o tempo de inicialização em comparação com uma JVM tradicional.
 
 ```plaintext
 Quarkus 3.36.1 native (powered by GraalVM) started in 0.035s. Listening on: http://0.0.0.0:8080

@@ -1,9 +1,9 @@
-package org.acme.resource;
+package io.grochevski.telemetry.resource;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
-import org.acme.entity.VehicleData;
+import io.grochevski.telemetry.entity.VehicleData;
 import org.jboss.logging.Logger;
 
 import io.quarkus.hibernate.reactive.panache.Panache;
@@ -38,7 +38,7 @@ public class VehicleResource {
     @POST
     public Uni<Response> receiveTelemetry(VehicleData data) {
         if (data.timestamp == null) {
-            data.timestamp = LocalDateTime.now();
+            data.timestamp = Instant.now();
         }
 
         if (data.isSpeeding()) {
