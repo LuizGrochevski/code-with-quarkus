@@ -1,10 +1,10 @@
 package io.grochevski.telemetry.route;
 
-import io.grochevski.telemetry.entity.VehicleData;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.hibernate.reactive.mutiny.Mutiny;
 
+import io.grochevski.telemetry.entity.VehicleData;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -20,7 +20,7 @@ public class VehicleRoute extends RouteBuilder {
         onException(Exception.class)
             .maximumRedeliveries(3)
             .redeliveryDelay(2000)
-            .handled(true) // Marca como tratado para não quebrar o loop do Kafka
+            .handled(true)
             .logHandled(true)
             .log("❌ [ERRO CRÍTICO] Falha ao persistir telemetria no banco após retentativas. Mensagem descartada.");
 
@@ -37,13 +37,12 @@ public class VehicleRoute extends RouteBuilder {
 
                 sessionFactory.openSession()
                     .flatMap(session -> session.persist(data)
-                        .flatMap(v -> session.flush()) // Força a gravação no banco
-                        .onTermination().call(session::close) // Garante o fechamento da sessão
+                        .flatMap(v -> session.flush())
+                        .onTermination().call(session::close)
                     )
-                    .subscribe().with(
-                        item -> log.info("💾 [BANCO] Telemetria de " + data.vehicleId + " gravada com sucesso total!"),
-                        err -> log.error("❌ Erro fatal de persistência: " + err.getMessage())
-                    );
+                    .await().indefinitely();
+
+                log.info("💾 [BANCO] Telemetria de " + data.vehicleId + " gravada com sucesso!");
             });
     }
 }
